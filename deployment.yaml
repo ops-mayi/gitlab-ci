@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-helloworld
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: springboot-helloworld
+  template:
+    metadata:
+      labels:
+        app: springboot-helloworld
+    spec:
+      imagePullSecrets:
+        - name: harborsecret
+      containers:
+        - image: app_image_name
+          name: springboot-helloworld
+          env: 
+            - name: APP_OPTS
+              value: "-Dlog4j2.formatMsgNoLookups=true"
+            - name: eureka.client.service-url.defaultZone  #eureka 配置
+              value: >-
+                http://eureka-server.msapp.svc.cluster.local:1111/eureka
+            - name: apollometa
+              value: apollo_url
+          resources:
+            requests:
+              memory: 200Mi
+              cpu: 0.1
+            limits:
+              memory: 2Gi
+              cpu: 1
+          ports:
+            - containerPort: 8080
+              name: springboot-helloworld
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot-helloworld
+spec:
+  ports:
+    - port: 8080
+  selector:
+    app: springboot-helloworld
